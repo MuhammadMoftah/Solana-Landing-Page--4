@@ -1,0 +1,53 @@
+---
+import { getImage } from 'astro:assets';
+import GalleryShowcase from '../gallery/GalleryShowcase.vue';
+import media, { galleryOrder } from '../../content/solana-east.media.js';
+import { getSection } from '../../lib/content.js';
+
+const section = getSection('gallery');
+
+const items = await Promise.all(
+  galleryOrder.map(async (id) => {
+    const entry = media[id as keyof typeof media];
+    const [featured, thumb, full] = await Promise.all([
+      getImage({ src: entry.src, widths: [640, 960, 1280, 1600], format: 'webp', quality: 60 }),
+      getImage({ src: entry.src, widths: [240, 360, 480], format: 'webp', quality: 58 }),
+      getImage({ src: entry.src, width: 1920, format: 'webp', quality: 66 }),
+    ]);
+    return {
+      id,
+      alt: entry.alt,
+      caption: entry.caption,
+      position: 'position' in entry ? entry.position : undefined,
+      // Reading entry.src.* directly would make Astro copy the multi-megabyte original into dist.
+      width: Number(featured.attributes.width),
+      height: Number(featured.attributes.height),
+      featuredSrc: featured.src,
+      featuredSrcset: featured.srcSet.attribute,
+      thumbSrc: thumb.src,
+      thumbSrcset: thumb.srcSet.attribute,
+      fullSrc: full.src,
+    };
+  }),
+);
+---
+
+<section id="gallery" class="section rule-top" aria-labelledby="gallery-title">
+  <div class="container-x">
+    <div class="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+      <div>
+        <p class="eyebrow" data-reveal>{section.title}</p>
+        <h2 id="gallery-title" class="heading-2 mt-4" data-reveal style="--reveal-delay:80">
+          The <span class="t-accent">atmosphere</span>
+        </h2>
+      </div>
+      <p class="lead lg:pb-2" data-reveal style="--reveal-delay:140">
+        Shaded villa terraces, calm courtyards and material-rich interiors — a closer look at the architectural language
+        of Solana East. All images are architectural visualizations.
+      </p>
+    </div>
+    <div class="mt-12 lg:mt-14" data-reveal="fade">
+      <GalleryShowcase client:visible items={items} />
+    </div>
+  </div>
+</section>

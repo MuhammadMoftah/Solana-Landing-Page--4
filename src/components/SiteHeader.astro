@@ -1,0 +1,193 @@
+---
+import Icon from './ui/Icon.astro';
+import Wordmark from './ui/Wordmark.astro';
+
+export interface NavItem {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  items: NavItem[];
+}
+
+const { items } = Astro.props;
+const navLink =
+  'nav-link relative inline-flex min-h-11 items-center text-[0.6875rem] font-semibold tracking-[0.16em] text-bone-100 uppercase transition-colors duration-300 after:absolute after:inset-x-0 after:bottom-2 after:h-px after:origin-left after:scale-x-0 after:bg-ember-500 after:transition-transform after:duration-500 after:ease-out-soft hover:text-white hover:after:scale-x-100 data-[active]:text-white data-[active]:after:scale-x-100';
+---
+
+<header
+  id="site-header"
+  class="fixed inset-x-0 top-0 z-40 border-b border-transparent transition-[background-color,border-color] duration-500 data-[scrolled]:border-white/10 data-[scrolled]:bg-ink-950/85 data-[scrolled]:backdrop-blur-lg"
+>
+  <div class="container-x flex h-[4.5rem] items-center justify-between gap-6">
+    <a href="#top" class="shrink-0">
+      <Wordmark />
+    </a>
+
+    <nav aria-label="Primary" class="hidden xl:block">
+      <ul class="flex items-center gap-7">
+        {
+          items.map((item) => (
+            <li>
+              <a href={item.href} class={navLink}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-3">
+      <a href="#contact" class="btn btn-ember min-h-10 bg-ink-950/40 px-5 max-sm:hidden">
+        Let's Talk
+        <Icon name="arrow-ne" class="btn-arrow" />
+      </a>
+      <button
+        type="button"
+        class="menu-toggle btn-sq bg-ink-950/40 xl:hidden"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-requires-js
+      >
+        <span class="sr-only">Open menu</span>
+        <Icon name="menu" class="size-5" />
+      </button>
+    </div>
+  </div>
+</header>
+
+<div
+  id="mobile-menu"
+  class="invisible fixed inset-0 z-[60] flex flex-col overflow-hidden bg-ink-950 opacity-0 transition-[opacity,visibility] duration-500 ease-out-soft data-[open]:visible data-[open]:opacity-100 data-[open]:transition-opacity xl:hidden"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Site menu"
+  inert
+>
+  <span
+    class="pointer-events-none absolute inset-y-0 right-0 w-32 opacity-50"
+    style="background: repeating-linear-gradient(-45deg, transparent, transparent 10px, rgb(255 77 0 / 0.55) 10px, rgb(255 77 0 / 0.55) 20px);"
+    aria-hidden="true"
+  ></span>
+  <div class="container-x relative flex h-[4.5rem] shrink-0 items-center justify-between">
+    <Wordmark />
+    <button type="button" id="menu-close" class="btn-sq">
+      <span class="sr-only">Close menu</span>
+      <Icon name="close" class="size-5" />
+    </button>
+  </div>
+  <nav aria-label="Mobile" class="container-x relative flex flex-1 flex-col justify-center overflow-y-auto py-6">
+    <ul>
+      {
+        [...items, { href: '#faq', label: 'FAQ' }].map((item, index) => (
+          <li class="menu-item border-b border-white/10 first:border-t" style={`--i:${index}`}>
+            <a
+              href={item.href}
+              class="flex items-baseline gap-5 py-2.5 font-display text-[clamp(1.75rem,7vw,2.5rem)] leading-tight text-bone-50 uppercase transition-colors hover:text-ember-400"
+            >
+              <span class="font-sans text-[0.6875rem] font-semibold tracking-[0.2em] text-ember-400">
+                {String(index + 1).padStart(2, '0')}
+              </span>
+              {item.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+  <div class="container-x relative pb-10">
+    <a href="#contact" class="btn btn-solid w-full sm:w-auto">
+      Request information
+      <Icon name="arrow-ne" class="btn-arrow" />
+    </a>
+  </div>
+</div>
+
+<div id="header-sentinel" class="pointer-events-none absolute top-0 left-0 h-6 w-px" aria-hidden="true"></div>
+
+<style>
+  @media (prefers-reduced-motion: no-preference) {
+    .menu-item {
+      opacity: 0;
+      transform: translateY(1rem);
+      transition:
+        opacity 0.6s var(--ease-out-soft),
+        transform 0.7s var(--ease-out-soft);
+      transition-delay: calc(90ms + var(--i) * 45ms);
+    }
+
+    #mobile-menu[data-open] .menu-item {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const header = document.getElementById('site-header')!;
+  const sentinel = document.getElementById('header-sentinel')!;
+  const menu = document.getElementById('mobile-menu')!;
+  const closeButton = document.getElementById('menu-close')!;
+  const toggles = [...document.querySelectorAll<HTMLButtonElement>('.menu-toggle')];
+  let lastToggle: HTMLButtonElement | null = null;
+
+  // Header gains a solid backdrop once the page has scrolled.
+  new IntersectionObserver(([entry]) => {
+    header.toggleAttribute('data-scrolled', !entry.isIntersecting);
+  }).observe(sentinel);
+
+  // Scroll spy: mark the nav link of the section currently in the middle of the viewport.
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.nav-link')];
+  const targets = [...new Set(links.map((link) => link.hash))]
+    .map((hash) => document.querySelector<HTMLElement>(hash))
+    .filter((el): el is HTMLElement => Boolean(el));
+  const spy = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const hash = `#${entry.target.id}`;
+        for (const link of links) {
+          const active = link.hash === hash;
+          link.toggleAttribute('data-active', active);
+          if (active) link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        }
+      }
+    },
+    { rootMargin: '-45% 0px -50% 0px' },
+  );
+  targets.forEach((target) => spy.observe(target));
+
+  const background = () => document.querySelectorAll<HTMLElement>('body > :not(#mobile-menu, script, style)');
+
+  const setOpen = (open: boolean, restoreFocus = true) => {
+    menu.toggleAttribute('data-open', open);
+    menu.inert = !open;
+    background().forEach((el) => {
+      el.inert = open;
+    });
+    toggles.forEach((toggle) => toggle.setAttribute('aria-expanded', String(open)));
+    document.documentElement.style.overflow = open ? 'hidden' : '';
+    if (open) closeButton.focus();
+    else if (restoreFocus) lastToggle?.focus();
+  };
+
+  toggles.forEach((toggle) =>
+    toggle.addEventListener('click', () => {
+      lastToggle = toggle;
+      setOpen(true);
+    }),
+  );
+  closeButton.addEventListener('click', () => setOpen(false));
+  menu.addEventListener('click', (event) => {
+    if ((event.target as HTMLElement).closest('a')) setOpen(false, false);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && menu.hasAttribute('data-open')) setOpen(false);
+  });
+  matchMedia('(min-width: 80rem)').addEventListener('change', (event) => {
+    if (event.matches && menu.hasAttribute('data-open')) setOpen(false, false);
+  });
+</script>

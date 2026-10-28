@@ -1,0 +1,69 @@
+---
+import { Image } from 'astro:assets';
+import Icon from '../ui/Icon.astro';
+import media from '../../content/solana-east.media.js';
+import { getSection, sourceList, pad2, splitTail } from '../../lib/content.js';
+
+const section = getSection('masterplan');
+const { concepts } = section.content;
+const { lead, tail } = splitTail(section.content.heading, 1);
+
+const conceptImages: Record<string, keyof typeof media> = {
+  'central-lakes': 'gardenView1',
+  'green-corridors': 'buildingA5',
+  'connected-spaces': 'aerialMasterplan',
+  'retail-hub': 'buildingA6',
+};
+---
+
+<section id="masterplan" class="section rule-top" aria-labelledby="masterplan-title">
+  <div class="container-x">
+    <div class="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+      <div>
+        <p class="eyebrow" data-reveal>{section.title}</p>
+        <h2 id="masterplan-title" class="heading-2 mt-4" data-reveal style="--reveal-delay:80">
+          {lead}{' '}
+          <span class="t-accent">{tail}</span>
+        </h2>
+      </div>
+      <p class="lead lg:pb-2" data-reveal style="--reveal-delay:140">{section.content.description}</p>
+    </div>
+
+    <ol class="mt-14 grid gap-x-5 gap-y-12 sm:grid-cols-2 lg:mt-16 xl:grid-cols-4">
+      {
+        concepts.map((concept: any, index: number) => {
+          const image = media[conceptImages[concept.id]];
+          return (
+            <li class="group" data-reveal style={`--reveal-delay:${index * 90}`}>
+              <article>
+                <div class="corner-frame tone zoom relative aspect-square overflow-hidden border border-white/12 bg-ink-850">
+                  <Image
+                    src={image.src}
+                    alt=""
+                    widths={[360, 540, 720]}
+                    sizes="(min-width: 80rem) 19rem, (min-width: 40rem) 45vw, 92vw"
+                    quality={60}
+                    class="media-fill"
+                    style={'position' in image ? `object-position:${image.position}` : undefined}
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-ink-950/90 via-ink-950/25 to-transparent" aria-hidden="true"></div>
+                  <span class="numeral absolute top-4 left-4 text-[0.95rem]">{pad2(index)}</span>
+                  <h3 class="absolute bottom-5 left-4 max-w-[72%] text-[clamp(1.75rem,1.3rem+1.2vw,2.35rem)] leading-[0.98]">
+                    {concept.title}
+                  </h3>
+                  <Icon name="arrow" class="absolute right-4 bottom-4 size-5 text-ember-400 transition-transform duration-500 group-hover:translate-x-1" />
+                </div>
+                <p class="mt-5 text-[0.9rem] leading-relaxed text-ash-300">{concept.description}</p>
+              </article>
+            </li>
+          );
+        })
+      }
+    </ol>
+
+    <p class="source-note mt-14 max-w-3xl" data-reveal>
+      Concept as described in the {sourceList(['ora-brochure'])}. Images are architectural visualizations used for
+      illustration; they are not specific masterplan views.
+    </p>
+  </div>
+</section>

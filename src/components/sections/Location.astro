@@ -1,0 +1,79 @@
+---
+import Icon from '../ui/Icon.astro';
+import { content, getSection, sourceList, splitTail } from '../../lib/content.js';
+
+const section = getSection('location');
+const { location } = content.project;
+const { lead, tail } = splitTail(section.content.heading, 2);
+
+// Sources disagree on AUC (guide/brochure ≈15 min, Property Finder 10 min), so show the quoted range.
+const quotedRanges: Record<string, { time: string; extraSourceIds: string[] }> = {
+  'American University in Cairo (AUC)': { time: '10–15', extraSourceIds: ['property-finder'] },
+};
+// The source groups two destinations together; excluded until clarified (see content note).
+const excluded = new Set(['Ring Road / CFC']);
+
+const places = section.content.nearbyPlaces
+  .filter((place: any) => !excluded.has(place.name))
+  .map((place: any) => {
+    const range = quotedRanges[place.name];
+    return {
+      ...place,
+      time: range?.time ?? `${place.travelTimeMinutes}`,
+      sourceIds: [...place.sourceIds, ...(range?.extraSourceIds ?? [])],
+    };
+  })
+  .sort((a: any, b: any) => a.travelTimeMinutes - b.travelTimeMinutes);
+---
+
+<section id="location" class="section rule-top overflow-hidden" aria-labelledby="location-title">
+  <div class="container-x relative grid gap-14 lg:grid-cols-12 lg:gap-12">
+    <div class="lg:col-span-5">
+      <p class="eyebrow" data-reveal>{section.title}</p>
+      <h2 id="location-title" class="heading-2 mt-4" data-reveal style="--reveal-delay:80">
+        {lead} <span class="t-accent">{tail}</span>
+      </h2>
+      <p class="lead mt-7" data-reveal style="--reveal-delay:140">
+        Solana East is located in {location.district}, {location.city} — part of {location.broaderArea}, with access to {
+          location.nearbyRoads.slice(0, -1).join(', ')
+        } and the {location.nearbyRoads.at(-1)}.
+      </p>
+      <ul class="mt-9 space-y-3" data-reveal style="--reveal-delay:180">
+        <li class="flex items-center gap-3 text-bone-50">
+          <Icon name="pin" class="size-5 text-ember-400" />
+          {location.district}, {location.city}, {location.country}
+        </li>
+        {
+          location.nearbyRoads.map((road: string) => (
+            <li class="flex items-center gap-3 text-ash-300">
+              <Icon name="road" class="size-5 text-ember-400" />
+              {road}
+            </li>
+          ))
+        }
+      </ul>
+      <p class="source-note mt-6" data-reveal>Road access as listed by {sourceList(['property-finder'])}.</p>
+    </div>
+
+    <div class="lg:col-span-6 lg:col-start-7">
+      <ol class="hairline border-t">
+        {
+          places.map((place: any, index: number) => (
+            <li class="hairline grid grid-cols-[1fr_auto] items-center gap-x-6 gap-y-1 border-b py-5" data-reveal style={`--reveal-delay:${index * 70}`}>
+              <span class="heading-3 text-bone-50 text-[clamp(1.375rem,1.1rem+0.9vw,1.75rem)] leading-tight">{place.name}</span>
+              <span class="text-right whitespace-nowrap">
+                <span class="numeral text-[clamp(2.25rem,1.8rem+1.6vw,3.25rem)]">≈{place.time}</span>
+                <span class="ml-1 text-[0.6875rem] font-semibold tracking-[0.14em] text-ash-300 uppercase">min</span>
+              </span>
+              <span class="meta col-span-2 text-xs">Quoted by {sourceList(place.sourceIds)}</span>
+            </li>
+          ))
+        }
+      </ol>
+      <p class="source-note mt-6" data-reveal>
+        Approximate drive times as quoted by the sources above. Actual journeys depend on route, starting point and
+        traffic. Exact site coordinates have not been published; ask the sales team for the location.
+      </p>
+    </div>
+  </div>
+</section>

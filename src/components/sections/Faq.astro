@@ -1,0 +1,33 @@
+---
+import Icon from '../ui/Icon.astro';
+import { getSection, pad2 } from '../../lib/content.js';
+
+const section = getSection('faq');
+---
+
+<section id="faq" class="section" aria-labelledby="faq-title">
+  <div class="container-x grid gap-12 lg:grid-cols-12">
+    <div class="lg:col-span-4">
+      <p class="eyebrow" data-reveal>FAQ</p>
+      <h2 id="faq-title" class="heading-2 mt-4" data-reveal style="--reveal-delay:80">
+        Questions <span class="t-accent">&amp; answers</span>
+      </h2>
+    </div>
+    <div class="hairline border-t lg:col-span-8" data-reveal style="--reveal-delay:120">
+      {
+        section.content.items.map((item: any, index: number) => (
+          <details name="faq" class="group hairline border-b">
+            <summary class="flex min-h-16 cursor-pointer list-none items-center gap-5 py-5 text-left [&::-webkit-details-marker]:hidden">
+              <span class="numeral w-8 shrink-0 text-[1.25rem]">{pad2(index)}</span>
+              <span class="flex-1 font-display text-[clamp(1.375rem,1.15rem+0.8vw,1.875rem)] leading-tight text-bone-50 uppercase">{item.question}</span>
+              <span class="btn-sq btn-sq-ember size-10 shrink-0">
+                <Icon name="plus" class="size-4 transition-transform duration-500 group-open:rotate-45" />
+              </span>
+            </summary>
+            <p class="max-w-2xl pb-7 pl-[3.25rem] text-[0.95rem] leading-relaxed text-ash-300">{item.answer}</p>
+          </details>
+        ))
+      }
+    </div>
+  </div>
+</section>

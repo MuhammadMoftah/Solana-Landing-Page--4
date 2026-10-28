@@ -1,0 +1,145 @@
+---
+import Icon from '../ui/Icon.astro';
+import { getSection, sourceList, formatEgpMillions, formatNumber, formatMonth, pad2 } from '../../lib/content.js';
+
+const prices = getSection('prices');
+const payments = getSection('payment-plans');
+const timeline = getSection('timeline');
+
+const startingPrice = prices.content.propertyFinderStartingPriceEgp;
+const launchPrice = prices.content.propertyFinderLaunchPriceEgp;
+const plans = payments.content.plans;
+const downPayments = [...new Set(plans.map((plan: any) => plan.downPaymentPercent))];
+const years = [...new Set(plans.map((plan: any) => plan.installmentYears))].sort((a: any, b: any) => a - b);
+const milestones = timeline.content.milestones;
+const start = milestones.find((m: any) => m.id === 'construction-start');
+const completion = milestones.find((m: any) => m.id === 'expected-completion');
+
+const examples = prices.content.unitPriceExamples;
+const examplesSource = sourceList(examples[0].sourceIds);
+const examplesDate = formatMonth(`${examples[0].sourceDate}-01`);
+
+const bar = [
+  { label: 'Listed from', value: `EGP ${formatEgpMillions(startingPrice)}` },
+  { label: 'Reported down payment', value: `${downPayments.join(' / ')}%` },
+  { label: 'Expected delivery', value: timeline.content.deliveryDateDisplay },
+];
+
+const steps = [
+  { title: start.title, value: formatMonth(start.date) },
+  { title: completion.title, value: timeline.content.deliveryDateDisplay },
+];
+---
+
+<section id="prices" class="section rule-top" aria-labelledby="prices-title">
+  <div class="container-x">
+    <div class="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+      <div>
+        <p class="eyebrow" data-reveal>Prices · Payment · Timeline</p>
+        <h2 id="prices-title" class="heading-2 mt-4" data-reveal style="--reveal-delay:80">
+          Prices &amp; <span class="t-accent">key dates</span>
+        </h2>
+      </div>
+      <p class="lead lg:pb-2" data-reveal style="--reveal-delay:140">
+        Published figures give a starting point for your planning. Request the current price list for exact unit prices
+        and payment terms.
+      </p>
+    </div>
+
+    <dl class="hairline mt-14 grid border-y sm:grid-cols-3" data-reveal>
+      {
+        bar.map((item) => (
+          <div class="hairline px-0 py-8 sm:border-l sm:px-8 sm:first:border-l-0 sm:first:pl-0 max-sm:border-b max-sm:last:border-b-0">
+            <dt class="label text-ember-400">{item.label}</dt>
+            <dd class="numeral mt-3 text-[clamp(2.5rem,1.8rem+2.6vw,4.25rem)]">{item.value}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <div class="mt-14 grid gap-12 lg:grid-cols-12 lg:gap-10">
+      <div class="lg:col-span-4" data-reveal>
+        <h3 class="heading-3">Listed <span class="t-accent">prices</span></h3>
+        <p class="mt-4 text-[0.95rem] text-ash-300">
+          Starting from EGP {formatEgpMillions(startingPrice)}; other listing snapshots show up to EGP {formatEgpMillions(launchPrice)}.
+        </p>
+        <p class="source-note mt-3">Source: {sourceList(prices.sources)}</p>
+      </div>
+      <div class="lg:col-span-4" data-reveal style="--reveal-delay:100">
+        <h3 class="heading-3">Payment <span class="t-accent">plans</span></h3>
+        <p class="mt-4 text-[0.95rem] text-ash-300">
+          {downPayments.join(' / ')}% down payment with installments over {years.join(' or ')} years have been reported.
+        </p>
+        <p class="source-note mt-3">Source: {sourceList(payments.sources)} · {payments.content.disclaimer}</p>
+      </div>
+      <div class="lg:col-span-4" data-reveal style="--reveal-delay:200">
+        <h3 class="heading-3"><span class="t-accent">Timeline</span></h3>
+        <ol class="mt-5 grid grid-cols-[1fr_auto_1fr] items-start gap-x-3">
+          {
+            steps.map((step, index) => (
+              <>
+                <li class:list={[index === 1 && 'col-start-3']}>
+                  <p class="numeral text-[1.75rem]">{pad2(index)}</p>
+                  <p class="mt-2 font-display text-[1.25rem] leading-tight text-bone-50 uppercase">{step.value}</p>
+                  <p class="meta mt-1">{step.title}</p>
+                </li>
+                {index === 0 && (
+                  <li class="relative mt-3.5 w-12 self-start sm:w-16" aria-hidden="true">
+                    <span class="block h-px bg-ember-600" />
+                    <Icon name="arrow" class="absolute -top-[0.45rem] -right-1 size-4 text-ember-500" />
+                  </li>
+                )}
+              </>
+            ))
+          }
+        </ol>
+        <p class="source-note mt-4">Source: {sourceList(timeline.sources)} — confirm the contractual date.</p>
+      </div>
+    </div>
+
+    <details class="group hairline mt-16 border-y" data-reveal>
+      <summary class="flex min-h-16 cursor-pointer list-none items-center justify-between gap-4 py-5 text-left [&::-webkit-details-marker]:hidden">
+        <span>
+          <span class="heading-3 block text-[1.5rem]">Indicative unit price examples</span>
+          <span class="meta mt-1 block">{examples.length} examples · {examplesSource}, {examplesDate}</span>
+        </span>
+        <span class="btn-sq btn-sq-ember">
+          <Icon name="plus" class="size-4 transition-transform duration-500 group-open:rotate-45" />
+        </span>
+      </summary>
+      <div class="overflow-x-auto pb-6">
+        <table class="w-full text-left text-sm">
+          <caption class="sr-only">Indicative unit price examples by built-up area</caption>
+          <thead>
+            <tr class="border-b border-white/15 text-[0.6875rem] tracking-[0.16em] text-ash-400 uppercase">
+              <th scope="col" class="py-3 pr-6 font-semibold">Built-up area</th>
+              <th scope="col" class="py-3 text-right font-semibold">Price (EGP)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              examples.map((example: any) => (
+                <tr class="border-b border-white/10">
+                  <td class="py-3 pr-6 text-bone-50">{example.areaSqm} m²</td>
+                  <td class="py-3 text-right text-bone-50 tabular-nums">{formatNumber(example.priceEgp)}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+        <p class="source-note mt-4">
+          Historical examples captured from the {examplesSource} ({examplesDate}). Units with the same area can be priced
+          differently; these are not current offers.
+        </p>
+      </div>
+    </details>
+
+    <div class="mt-10 flex flex-col gap-8 md:flex-row md:items-center md:justify-between" data-reveal>
+      <p class="source-note max-w-2xl">{prices.content.disclaimer}</p>
+      <a href="#contact" class="btn btn-ember shrink-0">
+        Request the latest price list
+        <Icon name="arrow-ne" class="btn-arrow" />
+      </a>
+    </div>
+  </div>
+</section>

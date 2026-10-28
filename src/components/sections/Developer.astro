@@ -1,0 +1,64 @@
+---
+import { Image } from 'astro:assets';
+import Icon from '../ui/Icon.astro';
+import media from '../../content/solana-east.media.js';
+import { getSection } from '../../lib/content.js';
+
+const section = getSection('developer');
+const { content } = section;
+const logo = media.oraLogo;
+---
+
+<section id="developer" class="rule-top relative overflow-hidden border-b border-white/10 bg-ink-850" aria-labelledby="developer-title">
+  <span
+    class="pointer-events-none absolute inset-y-0 left-0 w-24 opacity-40 max-md:hidden"
+    style="background: repeating-linear-gradient(-45deg, transparent, transparent 8px, rgb(255 77 0 / 0.45) 8px, rgb(255 77 0 / 0.45) 16px);"
+    aria-hidden="true"
+  ></span>
+  <div class="container-x relative grid items-center gap-14 py-20 lg:grid-cols-12 lg:py-28">
+    <div class="flex justify-center lg:col-span-4" data-reveal="scale">
+      <div class="relative flex aspect-square w-[min(100%,15rem)] items-center justify-center border border-white/15 bg-ink-950 sm:w-[min(100%,18rem)]">
+        <span class="absolute inset-3 border border-ember-500/50" aria-hidden="true"></span>
+        <Image
+          src={logo.src}
+          alt={logo.alt}
+          widths={[240, 360, 480]}
+          sizes="13rem"
+          quality={80}
+          class="logo-light relative w-[58%]"
+        />
+      </div>
+    </div>
+
+    <div class="lg:col-span-7 lg:col-start-6">
+      <p class="eyebrow" data-reveal>The developer</p>
+      <h2 id="developer-title" class="heading-2 mt-4" data-reveal style="--reveal-delay:80">
+        {content.name}
+      </h2>
+      <p class="label mt-4 text-ember-400" data-reveal style="--reveal-delay:110">Lifestyle destinations</p>
+      <p class="lead mt-6" data-reveal style="--reveal-delay:140">{content.description}</p>
+      <dl class="mt-9 grid gap-6 border-t border-white/12 pt-8 sm:grid-cols-2" data-reveal style="--reveal-delay:180">
+        <div>
+          <dt class="label">Chairman &amp; CEO</dt>
+          <dd class="mt-2 font-display text-[1.75rem] leading-tight text-bone-50 uppercase">{content.chairmanAndCEO}</dd>
+        </div>
+        <div>
+          <dt class="label">Official website</dt>
+          <dd class="mt-2">
+            <a href={content.website} class="text-link inline-flex items-center gap-2 text-[0.95rem]" target="_blank" rel="noopener">
+              oradevelopers.com
+              <Icon name="external" class="size-4" />
+              <span class="sr-only">(opens in a new tab)</span>
+            </a>
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<style>
+  .logo-light {
+    filter: brightness(0) invert(0.92);
+  }
+</style>

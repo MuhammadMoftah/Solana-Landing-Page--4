@@ -1,0 +1,146 @@
+---
+import { Image } from 'astro:assets';
+import Icon from '../ui/Icon.astro';
+import media from '../../content/solana-east.media.js';
+import {
+  getSection,
+  sourceList,
+  unitTypeSummary,
+  formatRange,
+  formatBedrooms,
+  formatEgpMillions,
+  configLayouts,
+  configSizeRange,
+  pad2,
+  splitTail,
+} from '../../lib/content.js';
+
+const section = getSection('residential-units');
+const unitTypes = section.content.unitTypes;
+const { lead, tail } = splitTail(section.content.heading, 2);
+
+const unitImages: Record<string, keyof typeof media> = {
+  apartments: 'buildingA3',
+  duplexes: 'buildingA4',
+  townhouses: 'streetView',
+  villas: 'villaPool1',
+};
+
+const cards = unitTypes.map((unit: any) => ({
+  ...unit,
+  summary: unitTypeSummary(unit),
+  image: media[unitImages[unit.id]],
+}));
+const typeNames = unitTypes.map((u: any) => u.name.toLowerCase());
+const bedrooms = unitTypes.flatMap((u: any) => u.configurations.map((c: any) => c.bedrooms));
+const bedroomSpan = `${Math.min(...bedrooms)} to ${Math.max(...bedrooms)}`;
+---
+
+<section id="residential-units" class="section rule-top" aria-labelledby="residences-title">
+  <div class="container-x">
+    <div class="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+      <div class="max-w-3xl">
+        <p class="eyebrow" data-reveal>Residences</p>
+        <h2 id="residences-title" class="heading-2 mt-4" data-reveal style="--reveal-delay:80">
+          {lead} <span class="t-accent">{tail}</span>
+        </h2>
+      </div>
+      <div class="lg:max-w-md lg:pb-2" data-reveal style="--reveal-delay:120">
+        <p class="lead first-letter:uppercase">
+          {typeNames.slice(0, -1).join(', ')} and {typeNames.at(-1)} — listed with layouts from {bedroomSpan} bedrooms.
+        </p>
+        <p class="source-note mt-3">
+          Layouts and sizes as listed by {sourceList(section.sources)}; confirm current availability and specifications
+          with the sales team.
+        </p>
+      </div>
+    </div>
+
+    <ul class="mt-14 grid items-start gap-x-5 gap-y-14 sm:grid-cols-2 lg:mt-16 xl:grid-cols-4">
+      {
+        cards.map((unit: any, index: number) => (
+          <li class="group" data-reveal style={`--reveal-delay:${index * 90}`}>
+            <article aria-labelledby={`unit-${unit.id}`}>
+              <div class="corner-frame tone zoom relative aspect-[4/3] overflow-hidden border border-white/12 bg-ink-850">
+                <Image
+                  src={unit.image.src}
+                  alt={unit.image.alt}
+                  widths={[360, 540, 720]}
+                  sizes="(min-width: 80rem) 19rem, (min-width: 40rem) 45vw, 92vw"
+                  quality={62}
+                  class="media-fill"
+                  style={'position' in unit.image ? `object-position:${unit.image.position}` : undefined}
+                />
+                <span class="label absolute bottom-3 left-3 bg-ink-950/75 px-2.5 py-1 backdrop-blur-sm">Illustrative render</span>
+              </div>
+
+              <div class="mt-5 flex items-baseline justify-between gap-4">
+                <div class="flex items-baseline gap-4">
+                  <span class="numeral text-[1.75rem]">{pad2(index)}</span>
+                  <h3 id={`unit-${unit.id}`} class="heading-3">{unit.name}</h3>
+                </div>
+              </div>
+
+              <dl class="hairline mt-5 divide-y divide-white/10 border-y text-sm">
+                <div class="flex justify-between gap-4 py-3">
+                  <dt class="text-ash-400">Bedrooms</dt>
+                  <dd class="text-bone-50">{formatBedrooms(unit.summary.bedroomRange).replace(/ bedrooms?/, '')}</dd>
+                </div>
+                {unit.summary.sizeRange && (
+                  <div class="flex justify-between gap-4 py-3">
+                    <dt class="text-ash-400">Listed sizes</dt>
+                    <dd class="text-bone-50 tabular-nums">{formatRange(unit.summary.sizeRange)}</dd>
+                  </div>
+                )}
+                {unit.summary.startingPriceEgp && (
+                  <div class="flex justify-between gap-4 py-3">
+                    <dt class="text-ash-400">Listed from</dt>
+                    <dd class="text-bone-50">
+                      EGP {formatEgpMillions(unit.summary.startingPriceEgp)}
+                      <sup aria-hidden="true">*</sup>
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
+              <details class="group/details">
+                <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 text-[0.6875rem] font-semibold tracking-[0.2em] text-ember-400 uppercase [&::-webkit-details-marker]:hidden">
+                  {unit.summary.layoutCount} listed layouts
+                  <Icon name="plus" class="size-4 transition-transform duration-500 group-open/details:rotate-45" />
+                </summary>
+                <div class="space-y-4 pb-2">
+                  {unit.configurations.map((config: any) => (
+                    <div>
+                      <p class="text-sm text-bone-50">
+                        {formatBedrooms([config.bedrooms, config.bedrooms])}
+                        {configSizeRange(config) && <span class="text-ash-400"> · {formatRange(configSizeRange(config))}</span>}
+                      </p>
+                      <ul class="mt-2 flex flex-wrap gap-1.5">
+                        {configLayouts(config).map((layout: any) => (
+                          <li class="border border-white/15 px-2.5 py-0.5 text-xs text-ash-300 tabular-nums">
+                            Type {layout.type} · {layout.sizeSqm} m²
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="mt-14 flex flex-col gap-6 border-t border-white/10 pt-8 md:flex-row md:items-center md:justify-between" data-reveal>
+      <p class="source-note max-w-2xl">
+        <span aria-hidden="true">*</span>Starting prices quoted by {sourceList(['property-finder'])} for some layouts; prices
+        change and are not offers. Renders illustrate the architectural style and are not tied to a specific unit type.
+      </p>
+      <a href="#contact" class="btn btn-ember shrink-0">
+        Request floor plans
+        <Icon name="arrow-ne" class="btn-arrow" />
+      </a>
+    </div>
+  </div>
+</section>

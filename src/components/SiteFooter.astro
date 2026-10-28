@@ -1,0 +1,90 @@
+---
+import Wordmark from './ui/Wordmark.astro';
+import Icon from './ui/Icon.astro';
+import { content, getSection, digitsOnly } from '../lib/content.js';
+import type { NavItem } from './SiteHeader.astro';
+
+interface Props {
+  items: NavItem[];
+}
+
+const { items } = Astro.props;
+const { project, sources, lastResearched } = content;
+const contact = getSection('contact').content.thirdPartyContact;
+const year = new Date(`${lastResearched}T00:00:00Z`).getUTCFullYear();
+---
+
+<footer class="relative border-t border-white/10 bg-ink-950">
+  <div class="container-x py-16 lg:py-20">
+    <div class="grid gap-12 lg:grid-cols-12">
+      <div class="lg:col-span-5">
+        <a href="#top" class="inline-block">
+          <Wordmark size="lg" />
+        </a>
+        <p class="meta mt-5 max-w-sm">
+          A residential development by {project.developer.name} in {project.location.city}, {project.location.broaderArea}.
+        </p>
+      </div>
+
+      <nav aria-label="Footer" class="lg:col-span-3">
+        <p class="eyebrow">Explore</p>
+        <ul class="mt-4 grid grid-cols-2 gap-x-6 lg:grid-cols-1">
+          {
+            [...items, { href: '#faq', label: 'FAQ' }].map((item) => (
+              <li>
+                <a href={item.href} class="link-underline inline-flex min-h-9 items-center text-[0.8125rem] text-ash-300 hover:text-white">
+                  {item.label}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="lg:col-span-4">
+        <p class="eyebrow">Contact</p>
+        <ul class="mt-4 space-y-3 text-sm">
+          <li class="flex items-center gap-3">
+            <Icon name="phone" class="size-4 shrink-0 text-ember-400" />
+            <a href={`tel:+${digitsOnly(contact.phone)}`} class="text-bone-50 hover:text-ember-300">{contact.phone}</a>
+          </li>
+          <li class="flex items-center gap-3">
+            <Icon name="globe" class="size-4 shrink-0 text-ember-400" />
+            <a href={project.developer.website} target="_blank" rel="noopener" class="text-bone-50 hover:text-ember-300">
+              {project.developer.name}<span class="sr-only"> (opens in a new tab)</span>
+            </a>
+          </li>
+          <li class="flex items-center gap-3 text-ash-300">
+            <Icon name="pin" class="size-4 shrink-0 text-ember-400" />
+            {project.location.city}, {project.location.broaderArea}, {project.location.country}
+          </li>
+        </ul>
+        <p class="source-note mt-3 max-w-xs">Phone published by the independent project guide — not verified as an official ORA sales channel.</p>
+      </div>
+    </div>
+
+    <div class="mt-14 border-t border-white/10 pt-8">
+      <p class="label">Sources</p>
+      <ul class="mt-3 flex flex-wrap gap-x-6 gap-y-2 text-xs">
+        {
+          sources
+            .filter((source: any) => source.id !== 'ora-project-page')
+            .map((source: any) => (
+              <li>
+                <a href={source.url} target="_blank" rel="noopener" class="text-ash-300 underline decoration-ember-600 underline-offset-4 hover:text-white">
+                  {source.name}
+                  <span class="sr-only"> (opens in a new tab)</span>
+                </a>
+              </li>
+            ))
+        }
+      </ul>
+      <p class="source-note mt-6 max-w-4xl">
+        Information compiled from the sources above (research snapshot, {lastResearched}). Prices, availability, payment
+        terms and delivery dates may change and must be confirmed with the developer or an authorized sales
+        representative. Images are architectural visualizations.
+      </p>
+      <p class="source-note mt-4">© {year} {project.displayName}</p>
+    </div>
+  </div>
+</footer>

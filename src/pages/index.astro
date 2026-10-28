@@ -1,0 +1,91 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SiteHeader, { type NavItem } from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import Hero from '../components/sections/Hero.astro';
+import Overview from '../components/sections/Overview.astro';
+import Masterplan from '../components/sections/Masterplan.astro';
+import Residences from '../components/sections/Residences.astro';
+import Amenities from '../components/sections/Amenities.astro';
+import Gallery from '../components/sections/Gallery.astro';
+import Location from '../components/sections/Location.astro';
+import Pricing from '../components/sections/Pricing.astro';
+import Developer from '../components/sections/Developer.astro';
+import Faq from '../components/sections/Faq.astro';
+import Contact from '../components/sections/Contact.astro';
+import { content, getSection } from '../lib/content.js';
+
+const navItems: NavItem[] = [
+  { href: '#project-overview', label: 'Project' },
+  { href: '#masterplan', label: 'Masterplan' },
+  { href: '#residential-units', label: 'Residences' },
+  { href: '#amenities', label: 'Amenities' },
+  { href: '#gallery', label: 'Gallery' },
+  { href: '#location', label: 'Location' },
+  { href: '#prices', label: 'Prices' },
+  { href: '#contact', label: 'Contact' },
+];
+
+const { project } = content;
+const { location, developer } = project;
+const title = `${project.displayName} | Homes in ${location.city}, ${location.broaderArea}`;
+const description = `${project.name} by ${developer.name}: apartments, duplexes, townhouses and villas in ${location.city}, set around landscaped green corridors and water features.`;
+
+const faq = getSection('faq').content.items;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Residence',
+      '@id': '#residence',
+      name: project.displayName,
+      description: project.overview,
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: location.city,
+        addressRegion: location.district,
+        addressCountry: 'EG',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': '#developer',
+      name: developer.name,
+      url: developer.website,
+    },
+    {
+      '@type': 'FAQPage',
+      mainEntity: faq.map((item: any) => ({
+        '@type': 'Question',
+        name: item.question,
+        acceptedAnswer: { '@type': 'Answer', text: item.answer },
+      })),
+    },
+    {
+      '@type': 'WebPage',
+      name: title,
+      description,
+      inLanguage: 'en',
+      about: { '@id': '#residence' },
+    },
+  ],
+};
+---
+
+<Layout title={title} description={description} structuredData={structuredData}>
+  <SiteHeader items={navItems} />
+  <main id="main">
+      <Hero />
+      <Overview />
+      <Masterplan />
+      <Residences />
+      <Amenities />
+      <Gallery />
+      <Location />
+      <Pricing />
+      <Developer />
+      <Faq />
+      <Contact />
+  </main>
+  <SiteFooter items={navItems} />
+</Layout>
